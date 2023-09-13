@@ -1,0 +1,19 @@
+- name: Check for existence of AWS CLI v2
+  stat:
+    path: "{{ awscli_v2_bin_dir }}/aws"
+  register: awscli_v2_bin
+
+- name: Install AWS CLI v2
+  block:
+    - include_tasks: install.yaml
+  become: true
+  become_user: root
+  when: not awscli_v2_bin.stat.exists
+
+- name: Configure AWS CLI v2
+  include_tasks:
+    file: configure.yaml
+    apply:
+      become: "{{ item.key != ansible_user }}"
+      become_user: "{{ item.key }}"
+  loop: "{{ awscli_v2_user_configs | dict2items }}"

@@ -1,0 +1,54 @@
+- name: Import AWS public PGP key
+  gpg_key:
+    content: "{{ lookup('file', 'awscli-v2.pub.pgp') }}"
+  register: import_gpg_key_output
+  no_log: true
+
+- name: Install prerequisite packages
+  package:
+    name:
+      - "{{ awscli_v2_pgp_package | default('gnupg2') }}"
+    state: present
+
+- name: Create install/bin directories
+  file:
+    path:
+      - "{{ awscli_v2_install_dir }}"
+      - "{{ awscli_v2_bin_dir }}"
+    state: directory
+    mode: 0755
+    owner: root
+ 
+- name: Retrieve AWS CLI archive and signature
+  ansible.builtin.get_url:
+    url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ ansible_architecture | default('x86_64') }}.{{ file_ext }}"
+    dest: "{{ awscli_v2_tmp_dir }}/awscliv2.{{ file_ext }}"
+  loop: [zip, zip.sig]
+  loop_control:
+    loop_var: file_ext
+
+- name: Verify AWS CLI archive signature
+  command:
+    cmd: |
+      {{ awscli_v2_pgp_bin | default("gpg") }} --verify "{{ awscli_v2_tmp_dir }}/awscliv2.zip.sig" "{{ awscli_v2_tmp_dir }}/awscliv2.zip"
+
+- name: Extract AWS cli archive
+  unarchive:
+    remote_src: true
+    src: "{{ awscli_v2_tmp_dir }}/awscliv2.zip"
+    dest: "{{ awscli_v2_tmp_dir }}"
+    creates: "{{ awscli_v2_tmp_dir }}/aws"
+
+- name: Run AWS installer
+  command:
+    cmd: "{{ awscli_v2_tmp_dir }}/aws/install -i {{ awscli_v2_install_dir }} -b {{ awscli_v2_bin_dir }}"
+    creates: "{{ awscli_v2_install_dir }}"
+
+- name: Clean up installer files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ awscli_v2_tmp_dir }}/aws"
+    - "{{ awscli_v2_tmp_dir }}/awscliv2.zip"
+    - "{{ awscli_v2_tmp_dir }}/awscliv2.zip.sig"

@@ -1,0 +1,3 @@
+dependencies:
+  - name: mdjward.gpg-keys
+    src: git+https://github.com/mdjward/ansible-gpg-keys

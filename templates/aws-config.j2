@@ -1,0 +1,9 @@
+{%- for section_name, section_content in (item.value | default({})).items() -%}
+  {%- for name, instance in (section_content | default({})).items() -%}
+  [{{ section_name | regex_replace('s$', '') }} {{ name }}]{{ "\n" }}
+    {%- for key, value in (instance | default({})).items() -%}
+      {{ key }} = {{ value }}{{ "\n" }}
+    {%- endfor -%}
+    {{ "\n" }}
+  {%- endfor -%}
+{%- endfor -%}

@@ -1,0 +1,8 @@
+awscli_v2_user_configs: {}
+awscli_v2_install_dir: /usr/local/share/aws-cli
+awscli_v2_bin_dir: /usr/local/bin
+
+awscli_v2_tmp_dir: /tmp
+
+awscli_v2_pgp_package: gnupg2
+awscli_v2_pgp_bin: gpg2
